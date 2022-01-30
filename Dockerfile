@@ -16,7 +16,8 @@ ARG S6_OVERLAY_VERSION
 ARG S6_OVERLAY_RELEASE
 ARG S6_OVERLAY_RELEASE_URL="${S6_OVERLAY_RELEASE}/v${S6_OVERLAY_VERSION}/s6-overlay-${TARGETPLATFORM}-${S6_OVERLAY_VERSION}.tar.xz"
 
-RUN wget -O /s6overlay-bin.tar.xz "$(echo ${S6_OVERLAY_RELEASE_URL} | sed 's/linux\///g' | sed 's/amd64/x86_64/g' | sed 's/arm64/aarch64/g' | sed 's/arm\/v7/armhf/g')"
+RUN apk add --no-cache wget \
+    && wget -O /s6overlay-bin.tar.xz "$(echo ${S6_OVERLAY_RELEASE_URL} | sed 's/linux\///g' | sed 's/amd64/x86_64/g' | sed 's/arm64/aarch64/g' | sed 's/arm\/v7/armhf/g')"
 
 
 # Third stage - Build rootfs from s6 parts
