@@ -60,8 +60,16 @@ target "2.2.0.3" {
 
 target "3.0.0.0" {
   inherits = ["build-dockerfile", "build-platforms", "build-common"]
-  tags     = ["docker.io/nlss/s6-rootfs:3.0.0.0", "docker.io/nlss/s6-rootfs:3.0.0.0-1", "docker.io/nlss/s6-rootfs:3.0", "docker.io/nlss/s6-rootfs:latest"]
+  tags     = ["docker.io/nlss/s6-rootfs:3.0.0.0", "docker.io/nlss/s6-rootfs:3.0.0.0-1"]
   args = {
     S6_OVERLAY_VERSION = "3.0.0.0-1"
+  }
+}
+
+target "3.0.0.1" {
+  inherits = ["build-dockerfile", "build-platforms", "build-common"]
+  tags     = ["docker.io/nlss/s6-rootfs:3.0.0.1", "docker.io/nlss/s6-rootfs:3.0", "docker.io/nlss/s6-rootfs:latest"]
+  args = {
+    S6_OVERLAY_VERSION = "3.0.0.1"
   }
 }

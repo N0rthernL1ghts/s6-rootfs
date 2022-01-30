@@ -1,4 +1,4 @@
-ARG S6_OVERLAY_VERSION="3.0.0.0-1"
+ARG S6_OVERLAY_VERSION="3.0.0.1"
 ARG S6_OVERLAY_RELEASE="https://github.com/just-containers/s6-overlay/releases/download/"
 
 
