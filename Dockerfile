@@ -1,18 +1,35 @@
-# First stage - Download s6-overlay
-ARG DOWNLOADER_ALPINE_VERSION=3.15
-
-# First stage - Download s6-overlay and unpack it
-FROM --platform=${TARGETPLATFORM} alpine:${DOWNLOADER_ALPINE_VERSION} AS downloader
-
-ARG TARGETPLATFORM
-
-# S6 Overlay
 ARG S6_OVERLAY_VERSION="3.0.0.0-1"
-ARG S6_OVERLAY_RELEASE="https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-${TARGETPLATFORM}.tar.gz"
+ARG S6_OVERLAY_RELEASE="https://github.com/just-containers/s6-overlay/releases/download/"
 
-RUN wget -O /tmp/s6overlay.tar.gz $(echo ${S6_OVERLAY_RELEASE} | sed 's/linux\///g' | sed 's/arm64/aarch64/g' | sed 's/arm\/v7/armhf/g') \
-    && mkdir -p /s6-overlay \
-    && tar xzf /tmp/s6overlay.tar.gz -C /s6-overlay
+
+# First stage - Download s6-overlay noarch base and unpack it
+FROM scratch AS downloader-s6-base
+ARG S6_OVERLAY_VERSION
+ARG S6_OVERLAY_RELEASE
+ADD "${S6_OVERLAY_RELEASE}/v${S6_OVERLAY_VERSION}/s6-overlay-noarch-${S6_OVERLAY_VERSION}.tar.xz" /s6overlay-base.tar.xz 
+
+
+# Second stage - Download s6-overlay platform-dependent binaries and unpack
+FROM --platform=${TARGETPLATFORM} alpine:3.15 AS downloader-s6-bin
+ARG TARGETPLATFORM
+ARG S6_OVERLAY_VERSION
+ARG S6_OVERLAY_RELEASE
+ARG S6_OVERLAY_RELEASE_URL="${S6_OVERLAY_RELEASE}/v${S6_OVERLAY_VERSION}/s6-overlay-${TARGETPLATFORM}-${S6_OVERLAY_VERSION}.tar.xz"
+
+RUN wget -O /s6overlay-bin.tar.xz "$(echo ${S6_OVERLAY_RELEASE_URL} | sed 's/linux\///g' | sed 's/amd64/x86_64/g' | sed 's/arm64/aarch64/g' | sed 's/arm\/v7/armhf/g')"
+
+
+# Third stage - Build rootfs from s6 parts
+FROM alpine:3.15 AS rootfs-builder
+
+COPY --from=downloader-s6-base ["/s6overlay-base.tar.xz", "/s6overlay-base.tar.xz"]
+COPY --from=downloader-s6-bin  ["/s6overlay-bin.tar.xz", "/s6overlay-bin.tar.xz"]
+
+WORKDIR "/rootfs-build/"
+
+RUN apk add --no-cache tar xz \
+    && tar -Jxpf /s6overlay-base.tar.xz -C /rootfs-build \
+    && tar -Jxpf /s6overlay-bin.tar.xz -C /rootfs-build
 
 
 # Final stage
@@ -20,4 +37,4 @@ FROM scratch AS s6-rootfs
 
 LABEL maintainer="Aleksandar Puharic <aleksandar@puharic.com>"
 
-COPY --from=downloader ["/s6-overlay/", "/"]
+COPY --from=rootfs-builder ["/rootfs-build/", "/"]
