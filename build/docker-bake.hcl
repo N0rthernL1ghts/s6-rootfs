@@ -64,7 +64,7 @@ target "3_0_0_0" {
   args = {
     S6_OVERLAY_VERSION = "3.0.0.0-1"
     S6_OVERLAY_BIN_PAK_EXT = "-3.0.0.0-1.tar.xz"
-    S6_OVERLAY_BASE_PAK_EXT = "-3.0.0.1-1.tar.xz"
+    S6_OVERLAY_BASE_PAK_EXT = "-3.0.0.0-1.tar.xz"
   }
 }
 
