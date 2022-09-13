@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-docker buildx bake --push --file build/docker-bake.hcl
