@@ -1,14 +1,13 @@
 ARG S6_OVERLAY_VERSION="3.0.0.2"
 ARG S6_OVERLAY_RELEASE="https://github.com/just-containers/s6-overlay/releases/download/"
-ARG S6_OVERLAY_BIN_PAK_EXT=".tar.xz"
-ARG S6_OVERLAY_BASE_PAK_EXT=".tar.xz"
+ARG S6_OVERLAY_PAK_EXT=".tar.xz"
 
 # First stage - Download s6-overlay noarch base and unpack it
 FROM scratch AS downloader-s6-base
 ARG S6_OVERLAY_VERSION
 ARG S6_OVERLAY_RELEASE
-ARG S6_OVERLAY_BASE_PAK_EXT
-ADD "${S6_OVERLAY_RELEASE}/v${S6_OVERLAY_VERSION}/s6-overlay-noarch${S6_OVERLAY_BASE_PAK_EXT}" /s6overlay-base.tar.xz
+ARG S6_OVERLAY_PAK_EXT
+ADD "${S6_OVERLAY_RELEASE}/v${S6_OVERLAY_VERSION}/s6-overlay-noarch${S6_OVERLAY_PAK_EXT}" /s6overlay-base.tar.xz
 
 
 # Second stage - Download s6-overlay platform-dependent binaries and unpack
@@ -16,8 +15,8 @@ FROM --platform=${TARGETPLATFORM} alpine:3.16.2 AS downloader-s6-bin
 ARG TARGETPLATFORM
 ARG S6_OVERLAY_VERSION
 ARG S6_OVERLAY_RELEASE
-ARG S6_OVERLAY_BIN_PAK_EXT
-ARG S6_OVERLAY_RELEASE_URL="${S6_OVERLAY_RELEASE}/v${S6_OVERLAY_VERSION}/s6-overlay-${TARGETPLATFORM}${S6_OVERLAY_BIN_PAK_EXT}"
+ARG S6_OVERLAY_PAK_EXT
+ARG S6_OVERLAY_RELEASE_URL="${S6_OVERLAY_RELEASE}/v${S6_OVERLAY_VERSION}/s6-overlay-${TARGETPLATFORM}${S6_OVERLAY_PAK_EXT}"
 
 RUN apk add --no-cache wget \
     && wget -O /s6overlay-bin.tar.xz "$(echo ${S6_OVERLAY_RELEASE_URL} | sed 's/linux\///g' | sed 's/amd64/x86_64/g' | sed 's/arm64/aarch64/g' | sed 's/arm\/v7/armhf/g')"

@@ -63,8 +63,7 @@ target "3_0_0_0" {
   tags     = ["docker.io/nlss/s6-rootfs:3.0.0.0", "docker.io/nlss/s6-rootfs:3.0.0.0-1"]
   args = {
     S6_OVERLAY_VERSION = "3.0.0.0-1"
-    S6_OVERLAY_BIN_PAK_EXT = "-3.0.0.0-1.tar.xz"
-    S6_OVERLAY_BASE_PAK_EXT = "-3.0.0.0-1.tar.xz"
+    S6_OVERLAY_PAK_EXT = "-3.0.0.0-1.tar.xz"
   }
 }
 
@@ -73,8 +72,7 @@ target "3_0_0_1" {
   tags     = ["docker.io/nlss/s6-rootfs:3.0.0.1"]
   args = {
     S6_OVERLAY_VERSION = "3.0.0.1"
-    S6_OVERLAY_BIN_PAK_EXT = "-3.0.0.1.tar.xz"
-    S6_OVERLAY_BASE_PAK_EXT = "-3.0.0.1.tar.xz"
+    S6_OVERLAY_PAK_EXT = "-3.0.0.1.tar.xz"
   }
 }
 
@@ -83,8 +81,7 @@ target "3_0_0_2" {
   tags     = ["docker.io/nlss/s6-rootfs:3.0.0.2"]
   args = {
     S6_OVERLAY_VERSION = "3.0.0.2"
-    S6_OVERLAY_BIN_PAK_EXT = "-3.0.0.2.tar.xz"
-    S6_OVERLAY_BASE_PAK_EXT = "-3.0.0.2.tar.xz"
+    S6_OVERLAY_PAK_EXT = "-3.0.0.2.tar.xz"
   }
 }
 
@@ -93,8 +90,7 @@ target "3_0_0_2-2" {
   tags     = ["docker.io/nlss/s6-rootfs:3.0.0.2-2", "docker.io/nlss/s6-rootfs:3.0"]
   args = {
     S6_OVERLAY_VERSION = "3.0.0.2-2"
-    S6_OVERLAY_BIN_PAK_EXT = "-3.0.0.2-2.tar.xz"
-    S6_OVERLAY_BASE_PAK_EXT = "-3.0.0.2-2.tar.xz"
+    S6_OVERLAY_PAK_EXT = "-3.0.0.2-2.tar.xz"
   }
 }
 
