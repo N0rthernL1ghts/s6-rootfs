@@ -10,7 +10,7 @@ ADD "${S6_OVERLAY_RELEASE}/v${S6_OVERLAY_VERSION}/s6-overlay-noarch-${S6_OVERLAY
 
 
 # Second stage - Download s6-overlay platform-dependent binaries and unpack
-FROM --platform=${TARGETPLATFORM} alpine:3.15 AS downloader-s6-bin
+FROM --platform=${TARGETPLATFORM} alpine:3.16.2 AS downloader-s6-bin
 ARG TARGETPLATFORM
 ARG S6_OVERLAY_VERSION
 ARG S6_OVERLAY_RELEASE
@@ -21,7 +21,7 @@ RUN apk add --no-cache wget \
 
 
 # Third stage - Build rootfs from s6 parts
-FROM alpine:3.15 AS rootfs-builder
+FROM alpine:3.16.2 AS rootfs-builder
 
 COPY --from=downloader-s6-base ["/s6overlay-base.tar.xz", "/s6overlay-base.tar.xz"]
 COPY --from=downloader-s6-bin  ["/s6overlay-bin.tar.xz", "/s6overlay-bin.tar.xz"]
