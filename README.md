@@ -34,5 +34,14 @@ FROM alpine:latest
 
 COPY --from=rootfs ["/", "/"]
 RUN apk add --update --no-cache nano
+
+# S6 configuration - not required
+# See: https://github.com/just-containers/s6-overlay#customizing-s6-overlay-behaviour
+ENV S6_KEEP_ENVS6_KEEP_ENV=1
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
+ENV S6_CMD_RECEIVE_SIGNALS=1
+
+# Important, this is required for S6 to work
+ENTRYPOINT ["/init"]
 ```
 
