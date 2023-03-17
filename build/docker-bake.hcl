@@ -1,5 +1,5 @@
 group "default" {
-  targets = ["2_1_0_2", "2_2_0_0", "2_2_0_1", "2_2_0_2", "2_2_0_3", "3_0_0_0", "3_0_0_1", "3_0_0_2", "3_0_0_2-2", "3_1_0_0", "3_1_0_1", "3_1_1_0", "3_1_1_1", "3_1_1_2", "3_1_2_0", "3_1_2_1", "3_1_3_0"]
+  targets = ["2_1_0_2", "2_2_0_0", "2_2_0_1", "2_2_0_2", "2_2_0_3", "3_0_0_0", "3_0_0_1", "3_0_0_2", "3_0_0_2-2", "3_1_0_0", "3_1_0_1", "3_1_1_0", "3_1_1_1", "3_1_1_2", "3_1_2_0", "3_1_2_1", "3_1_3_0", "3_1_4_0"]
 }
 
 target "build-dockerfile" {
@@ -152,8 +152,16 @@ target "3_1_2_1" {
 
 target "3_1_3_0" {
   inherits = ["build-dockerfile", "build-platforms", "build-common"]
-  tags     = ["docker.io/nlss/s6-rootfs:3.1.3.0", "docker.io/nlss/s6-rootfs:3.1", "docker.io/nlss/s6-rootfs:latest"]
+  tags     = ["docker.io/nlss/s6-rootfs:3.1.3.0"]
   args = {
     S6_OVERLAY_VERSION = "3.1.3.0"
+  }
+}
+
+target "3_1_4_0" {
+  inherits = ["build-dockerfile", "build-platforms", "build-common"]
+  tags     = ["docker.io/nlss/s6-rootfs:3.1.4.0", "docker.io/nlss/s6-rootfs:3.1", "docker.io/nlss/s6-rootfs:latest"]
+  args = {
+    S6_OVERLAY_VERSION = "3.1.4.0"
   }
 }
