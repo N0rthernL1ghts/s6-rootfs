@@ -1,5 +1,5 @@
 group "default" {
-  targets = ["2_1_0_2", "2_2_0_0", "2_2_0_1", "2_2_0_2", "2_2_0_3", "3_0_0_0", "3_0_0_1", "3_0_0_2", "3_0_0_2-2", "3_1_0_0", "3_1_0_1", "3_1_1_0", "3_1_1_1", "3_1_1_2", "3_1_2_0", "3_1_2_1", "3_1_3_0", "3_1_4_0", "3_1_4_1"]
+  targets = ["2_1_0_2", "2_2_0_0", "2_2_0_1", "2_2_0_2", "2_2_0_3", "3_0_0_0", "3_0_0_1", "3_0_0_2", "3_0_0_2-2", "3_1_0_0", "3_1_0_1", "3_1_1_0", "3_1_1_1", "3_1_1_2", "3_1_2_0", "3_1_2_1", "3_1_3_0", "3_1_4_0", "3_1_4_1", "3_1_4_2"]
 }
 
 target "build-dockerfile" {
@@ -230,6 +230,14 @@ target "3_1_4_1" {
   inherits   = ["build-dockerfile", "build-platforms", "build-common"]
   cache-from = get-cache-from("3.1.4.1")
   cache-to   = get-cache-to("3.1.4.1")
-  tags       = get-tags("3.1.4.1", ["3.1", "3.1.4", "latest"])
+  tags       = get-tags("3.1.4.1", [])
   args       = get-args("3.1.4.1")
+}
+
+target "3_1_4_2" {
+  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
+  cache-from = get-cache-from("3.1.4.2")
+  cache-to   = get-cache-to("3.1.4.2")
+  tags       = get-tags("3.1.4.2", ["3.1", "3.1.4", "latest"])
+  args       = get-args("3.1.4.2")
 }
