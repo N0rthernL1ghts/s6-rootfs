@@ -68,11 +68,13 @@ function "get-tags" {
   params = [version, extra_versions]
   result = concat(
     [
-      "docker.io/nlss/s6-rootfs:${version}"
+      "docker.io/nlss/s6-rootfs:${version}",
+      "ghcr.io/n0rthernl1ghts/s6-rootfs:${version}"
     ],
     flatten([
       for extra_version in extra_versions : [
-        "docker.io/nlss/s6-rootfs:${extra_version}"
+        "docker.io/nlss/s6-rootfs:${extra_version}",
+        "ghcr.io/n0rthernl1ghts/s6-rootfs:${extra_version}"
       ]
     ])
   )

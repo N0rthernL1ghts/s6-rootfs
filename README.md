@@ -4,14 +4,17 @@ The simplest and fastest way to get S6 supervisor in your image
 
 ### Usage
 ```Docker
-COPY --from=nlss/s6-rootfs:latest ["/", "/"]
+COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:latest ["/", "/"]
 ```
 or with fixed version:
 ```Docker
-COPY --from=nlss/s6-rootfs:3.1.2.1 ["/", "/"]
+COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.1.2.1 ["/", "/"]
 ```
 
 That's it!
+
+Note: We're moving to ghcr.io. `docker.io/nlss/s6-rootfs` will be kept up-to-date until May 2023, when is Docker sunsetting free teams.<br/>
+It is highly recommended that you start using `ghcr.io/n0rthernl1ghts/s6-rootfs`.
 
 ###### Recommended way to integrate with your image (example)
 ```Docker
@@ -24,7 +27,7 @@ FROM scratch AS rootfs
 COPY ["./rootfs", "/"]
 
 # Install S6
-COPY --from=nlss/s6-rootfs:3.1.2.1 ["/", "/"]
+COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.1.2.1 ["/", "/"]
 
 
 # ---------------------
@@ -44,4 +47,3 @@ ENV S6_CMD_RECEIVE_SIGNALS=1
 # Important, this is required for S6 to work
 ENTRYPOINT ["/init"]
 ```
-
