@@ -2,6 +2,8 @@
 
 The simplest and fastest way to get S6 supervisor in your image
 
+NOTE: GitHub Actions builds are currently broken. Images are, however manually built, so you should be still getting latest version.
+
 ### Usage
 ```Docker
 COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:latest ["/", "/"]
