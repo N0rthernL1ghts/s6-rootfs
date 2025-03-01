@@ -2,6 +2,9 @@
 
 The simplest and fastest way to get S6 supervisor in your image
 
+This docker image packages s6 supervisor overlay based on https://github.com/just-containers/s6-overlay releases.
+
+
 NOTE: GitHub Actions builds are currently broken. Images are, however manually built, so you should be still getting latest version.
 
 ### Usage
@@ -10,7 +13,7 @@ COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:latest ["/", "/"]
 ```
 or with fixed version:
 ```Docker
-COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.1.2.1 ["/", "/"]
+COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.2.0.2 ["/", "/"]
 ```
 
 That's it!
@@ -28,7 +31,7 @@ FROM scratch AS rootfs
 COPY ["./rootfs", "/"]
 
 # Install S6
-COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.1.2.1 ["/", "/"]
+COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.2.0.2 ["/", "/"]
 
 
 # ---------------------
