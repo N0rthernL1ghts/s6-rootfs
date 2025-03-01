@@ -11,7 +11,7 @@ ADD "${S6_OVERLAY_RELEASE}/v${S6_OVERLAY_VERSION}/s6-overlay-noarch${S6_OVERLAY_
 
 
 # Second stage - Download s6-overlay platform-dependent binaries and unpack
-FROM --platform=${TARGETPLATFORM} alpine:3.21 AS downloader-s6-bin
+FROM alpine:3.21 AS downloader-s6-bin
 ARG TARGETPLATFORM
 ARG S6_OVERLAY_VERSION
 ARG S6_OVERLAY_RELEASE
@@ -26,7 +26,7 @@ RUN set -eux \
 
 
 # Third stage - Download s6-overlay platform-dependent hashes
-FROM --platform=${TARGETPLATFORM} alpine:3.21 AS downloader-s6-sha256-sums
+FROM alpine:3.21 AS downloader-s6-sha256-sums
 ARG TARGETPLATFORM
 ARG S6_OVERLAY_VERSION
 ARG S6_OVERLAY_RELEASE
