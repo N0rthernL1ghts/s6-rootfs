@@ -6,7 +6,7 @@ group "default" {
     "3_1_0_0", "3_1_0_1", "3_1_1_0",
     "3_1_1_1", "3_1_1_2", "3_1_2_0",
     "3_1_2_1", "3_1_3_0", "3_1_4_0",
-    "3_1_4_1", "3_1_4_2", "3_1_5_0", 
+    "3_1_4_1", "3_1_4_2", "3_1_5_0",
     "3_1_6_0", "3_1_6_1", "3_1_6_2"
   ]
 }
@@ -28,7 +28,7 @@ target "build-common" {
 }
 
 variable "REGISTRY_CACHE" {
-  default = "docker.io/nlss/s6-rootfs-cache"
+  default = "ghcr.io/n0rthernl1ghts/s6-rootfs-cache"
 }
 
 ######################
@@ -77,12 +77,10 @@ function "get-tags" {
   params = [version, extra_versions]
   result = concat(
     [
-      "docker.io/nlss/s6-rootfs:${version}",
       "ghcr.io/n0rthernl1ghts/s6-rootfs:${version}"
     ],
     flatten([
       for extra_version in extra_versions : [
-        "docker.io/nlss/s6-rootfs:${extra_version}",
         "ghcr.io/n0rthernl1ghts/s6-rootfs:${extra_version}"
       ]
     ])

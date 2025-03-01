@@ -13,8 +13,7 @@ COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.1.2.1 ["/", "/"]
 
 That's it!
 
-Note: We're moving to ghcr.io. `docker.io/nlss/s6-rootfs` will be kept up-to-date until May 2023, when is Docker sunsetting free teams.<br/>
-It is highly recommended that you start using `ghcr.io/n0rthernl1ghts/s6-rootfs`.
+Note: We have moved to ghcr.io. `docker.io/nlss/s6-rootfs` is discontinued.<br/>
 
 ###### Recommended way to integrate with your image (example)
 ```Docker
