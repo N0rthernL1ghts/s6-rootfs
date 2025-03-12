@@ -1,5 +1,5 @@
 # First stage - Download s6-overlay and unpack it
-FROM busybox AS downloader
+FROM alpine:3.21 AS downloader
 
 ARG TARGETPLATFORM
 
