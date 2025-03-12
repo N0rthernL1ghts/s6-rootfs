@@ -1,5 +1,5 @@
 # First stage - Download s6-overlay and unpack it
-FROM alpine:3.21 AS downloader
+FROM busybox AS downloader
 
 ARG TARGETPLATFORM
 
@@ -7,15 +7,15 @@ ARG TARGETPLATFORM
 ARG S6_OVERLAY_VERSION="2.2.0.3"
 ARG S6_OVERLAY_RELEASE="https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${TARGETPLATFORM}.tar.gz"
 
-WORKDIR "/s6-overlay/"
-
-RUN apk add --no-cache wget tar gzip \
+RUN set -eux \
+    && mkdir -p /s6-overlay \
     && wget -O /tmp/s6overlay.tar.gz $(echo ${S6_OVERLAY_RELEASE} | sed 's/linux\///g' | sed 's/arm64/aarch64/g' | sed 's/arm\/v7/armhf/g') \
     && tar xzf /tmp/s6overlay.tar.gz -C /s6-overlay
 
 
+
 # Final stage
-FROM scratch AS s6-rootfs
+FROM scratch
 
 LABEL maintainer="Aleksandar Puharic <aleksandar@puharic.com>"
 
