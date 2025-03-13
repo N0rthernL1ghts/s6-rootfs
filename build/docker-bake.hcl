@@ -57,7 +57,6 @@ function "get-args-with-pak-ext" {
 function "get-cache-from" {
   params = [version]
   result = [
-    "type=gha,scope=${version}_${BAKE_LOCAL_PLATFORM}",
     "type=registry,ref=${REGISTRY_CACHE}:${sha1("${version}-${BAKE_LOCAL_PLATFORM}")}"
   ]
 }
@@ -66,7 +65,6 @@ function "get-cache-from" {
 function "get-cache-to" {
   params = [version]
   result = [
-    "type=gha,mode=max,scope=${version}_${BAKE_LOCAL_PLATFORM}",
     "type=registry,mode=max,ref=${REGISTRY_CACHE}:${sha1("${version}-${BAKE_LOCAL_PLATFORM}")}"
   ]
 }
