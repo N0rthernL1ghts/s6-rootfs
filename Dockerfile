@@ -5,7 +5,7 @@ ARG S6_OVERLAY_PAK_EXT=".tar.xz"
 
 
 # Downloader stage: download s6-overlay base, binary, symlinks and checksums
-FROM alpine:3.21 AS downloader
+FROM alpine:3.22 AS downloader
 ARG TARGETPLATFORM
 ARG S6_OVERLAY_VERSION
 ARG S6_OVERLAY_RELEASE
