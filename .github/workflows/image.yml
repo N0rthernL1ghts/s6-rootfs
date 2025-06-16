@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: vulcan
+    runs-on: ubuntu-latest
     steps:
       -
         name: checkout code
