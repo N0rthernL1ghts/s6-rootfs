@@ -22,6 +22,7 @@ ENV SYMLINKS_NOARCH_URL="${S6_OVERLAY_RELEASE}/v${S6_OVERLAY_VERSION}/s6-overlay
 ENV SYMLINKS_NOARCH_HASH_URL="${SYMLINKS_NOARCH_URL}.sha256"
 
 RUN set -eux \
+    && apk add --no-cache wget \
     # Replace platform
     && BIN_URL_FIXED=$(echo "${BIN_URL}" | sed -e 's/linux\///g' -e 's/amd64/x86_64/g' -e 's/arm64/aarch64/g' -e 's|arm/v7|armhf|g') \
     && BIN_HASH_URL_FIXED=$(echo "${BIN_HASH_URL}" | sed -e 's/linux\///g' -e 's/amd64/x86_64/g' -e 's/arm64/aarch64/g' -e 's|arm/v7|armhf|g') \

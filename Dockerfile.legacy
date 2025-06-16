@@ -8,6 +8,7 @@ ARG S6_OVERLAY_VERSION="2.2.0.3"
 ARG S6_OVERLAY_RELEASE="https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${TARGETPLATFORM}.tar.gz"
 
 RUN set -eux \
+    && apk add --no-cache wget \
     && mkdir -p /s6-overlay \
     && wget -O /tmp/s6overlay.tar.gz $(echo ${S6_OVERLAY_RELEASE} | sed 's/linux\///g' | sed 's/arm64/aarch64/g' | sed 's/arm\/v7/armhf/g') \
     && tar xzf /tmp/s6overlay.tar.gz -C /s6-overlay
