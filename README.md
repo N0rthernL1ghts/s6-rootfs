@@ -95,16 +95,16 @@ Images are built natively or via QEMU for the following architectures:
 
 ## Local Development & Builds
 
-Builds are defined in [`build/docker-bake.hcl`](build/docker-bake.hcl) using Docker Buildx Bake.
+Builds are defined in [`hack/docker-bake.hcl`](hack/docker-bake.hcl) using Docker Buildx Bake.
 
 ### Build a specific version locally
 
 ```bash
 # Build target 3_2_3_2 using Bake
-docker buildx bake --file build/docker-bake.hcl 3_2_3_2
+docker buildx bake --file hack/docker-bake.hcl 3_2_3_2
 
 # Build and load into local Docker daemon for host architecture
-docker buildx bake --file build/docker-bake.hcl --set "*.platform=linux/amd64" --load 3_2_3_2
+docker buildx bake --file hack/docker-bake.hcl --set "*.platform=linux/amd64" --load 3_2_3_2
 ```
 
 ### Standalone Dockerfile build

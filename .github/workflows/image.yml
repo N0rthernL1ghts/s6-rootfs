@@ -2,27 +2,24 @@ name: Build docker s6-overlay rootfs image
 
 on:
   push:
-    branches: master
+    branches:
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      -
-        name: checkout code
+      - name: checkout code
         uses: actions/checkout@v6
-      -
-        name: Set up QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
         with:
           config-inline: |
             [worker.oci]
               max-parallelism = 16
-      -
-        name: Login to DockerHub
+      - name: Login to DockerHub
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -34,9 +31,8 @@ jobs:
           registry: ghcr.io
           username: ${{github.actor}}
           password: ${{secrets.PAT_TOKEN}}
-      -
-        name: Build and push
+      - name: Build and push
         uses: docker/bake-action@v7.2.0
         with:
-          files: build/docker-bake.hcl
+          files: hack/docker-bake.hcl
           push: true
