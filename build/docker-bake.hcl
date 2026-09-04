@@ -1,24 +1,58 @@
+variable "REGISTRY" {
+  default = "ghcr.io/n0rthernl1ghts/s6-rootfs"
+}
+
+variable "REGISTRY_CACHE" {
+  default = "ghcr.io/n0rthernl1ghts/s6-rootfs-cache"
+}
+
+variable "S6_VERSIONS" {
+  default = {
+    # Legacy 2.x releases (use Dockerfile.legacy)
+    "2.1.0.2"   = { legacy = true, extra_tags = ["2.1"] }
+    "2.2.0.0"   = { legacy = true, extra_tags = [] }
+    "2.2.0.1"   = { legacy = true, extra_tags = [] }
+    "2.2.0.2"   = { legacy = true, extra_tags = [] }
+    "2.2.0.3"   = { legacy = true, extra_tags = ["2.2"] }
+
+    # 3.0.x releases with custom package extensions
+    "3.0.0.0"   = { overlay_version = "3.0.0.0-1", pak_ext = "-3.0.0.0-1.tar.xz", extra_tags = ["3.0.0.0-1"] }
+    "3.0.0.1"   = { pak_ext = "-3.0.0.1.tar.xz", extra_tags = [] }
+    "3.0.0.2"   = { pak_ext = "-3.0.0.2.tar.xz", extra_tags = [] }
+    "3.0.0.2-2" = { pak_ext = "-3.0.0.2-2.tar.xz", extra_tags = ["3.0"] }
+
+    # 3.1.x releases
+    "3.1.0.0"   = { extra_tags = [] }
+    "3.1.0.1"   = { extra_tags = ["3.1.0"] }
+    "3.1.1.0"   = { extra_tags = [] }
+    "3.1.1.1"   = { extra_tags = [] }
+    "3.1.1.2"   = { extra_tags = ["3.1", "3.1.1"] }
+    "3.1.2.0"   = { extra_tags = [] }
+    "3.1.2.1"   = { extra_tags = ["3.1.2"] }
+    "3.1.3.0"   = { extra_tags = ["3.1.3"] }
+    "3.1.4.0"   = { extra_tags = [] }
+    "3.1.4.1"   = { extra_tags = [] }
+    "3.1.4.2"   = { extra_tags = ["3.1.4"] }
+    "3.1.5.0"   = { extra_tags = ["3.1.5"] }
+    "3.1.6.0"   = { extra_tags = [] }
+    "3.1.6.1"   = { extra_tags = [] }
+    "3.1.6.2"   = { extra_tags = ["3.1", "3.1.6"] }
+
+    # 3.2.x releases
+    "3.2.0.0"   = { extra_tags = [] }
+    "3.2.0.1"   = { extra_tags = [] }
+    "3.2.0.2"   = { extra_tags = [] }
+    "3.2.0.3"   = { extra_tags = ["3.2.0"] }
+    "3.2.1.0"   = { extra_tags = ["3.2.1"] }
+    "3.2.2.0"   = { extra_tags = ["3.2.2"] }
+    "3.2.3.0"   = { extra_tags = [] }
+    "3.2.3.1"   = { extra_tags = [] }
+    "3.2.3.2"   = { extra_tags = ["3.2", "3.2.3", "latest"] }
+  }
+}
+
 group "default" {
-  targets = [
-    "2_1_0_2", "2_2_0_0", "2_2_0_1",
-    "2_2_0_2", "2_2_0_3", "3_0_0_0",
-    "3_0_0_1", "3_0_0_2", "3_0_0_2-2",
-    "3_1_0_0", "3_1_0_1", "3_1_1_0",
-    "3_1_1_1", "3_1_1_2", "3_1_2_0",
-    "3_1_2_1", "3_1_3_0", "3_1_4_0",
-    "3_1_4_1", "3_1_4_2", "3_1_5_0",
-    "3_1_6_0", "3_1_6_1", "3_1_6_2",
-    "3_2_0_0", "3_2_0_1", "3_2_0_2",
-    "3_2_0_3", "3_2_1_0", "3_2_2_0", "3_2_3_0", "3_2_3_1", "3_2_3_2"
-  ]
-}
-
-target "build-dockerfile" {
-  dockerfile = "Dockerfile"
-}
-
-target "build-dockerfile-legacy" {
-  dockerfile = "Dockerfile.legacy"
+  targets = ["s6-rootfs"]
 }
 
 target "build-platforms" {
@@ -29,328 +63,56 @@ target "build-common" {
   pull = true
 }
 
-variable "REGISTRY_CACHE" {
-  default = "ghcr.io/n0rthernl1ghts/s6-rootfs-cache"
-}
-
-######################
-# Define the functions
-######################
-
-# Get the arguments for the build
-function "get-args" {
-  params = [version]
-  result = {
-    S6_OVERLAY_VERSION = version
-  }
-}
-
-# Get the arguments for the build
-function "get-args-with-pak-ext" {
-  params = [version, pak_ext]
-  result = {
-    S6_OVERLAY_VERSION = version
-    S6_OVERLAY_PAK_EXT = pak_ext
-  }
-}
-
-# Get the cache-from configuration
+# Generic cache-from function
 function "get-cache-from" {
-  params = [version]
+  params = [registry, version]
   result = [
-    "type=registry,ref=${REGISTRY_CACHE}:${sha1("${version}-${BAKE_LOCAL_PLATFORM}")}"
+    "type=registry,ref=${registry}:${sha1("${version}-${BAKE_LOCAL_PLATFORM}")}"
   ]
 }
 
-# Get the cache-to configuration
+# Generic cache-to function
 function "get-cache-to" {
-  params = [version]
+  params = [registry, version]
   result = [
-    "type=registry,mode=max,ref=${REGISTRY_CACHE}:${sha1("${version}-${BAKE_LOCAL_PLATFORM}")}"
+    "type=registry,mode=max,ref=${registry}:${sha1("${version}-${BAKE_LOCAL_PLATFORM}")}"
   ]
 }
 
-# Get list of image tags and registries
-# Takes a version and a list of extra versions to tag
-# eg. get-tags("3.1.4.1", ["3.1", "latest"])
+# Generic tags generation function
 function "get-tags" {
-  params = [version, extra_versions]
+  params = [image_name, version, extra_tags]
   result = concat(
-    [
-      "ghcr.io/n0rthernl1ghts/s6-rootfs:${version}"
-    ],
+    [ "${image_name}:${version}" ],
     flatten([
-      for extra_version in extra_versions : [
-        "ghcr.io/n0rthernl1ghts/s6-rootfs:${extra_version}"
-      ]
+      for tag in extra_tags : [ "${image_name}:${tag}" ]
     ])
   )
 }
 
-##########################
-# Define the build targets
-##########################
-
-target "2_1_0_2" {
-  inherits   = ["build-dockerfile-legacy", "build-platforms", "build-common"]
-  cache-from = get-cache-from("2.1.0.2")
-  cache-to   = get-cache-to("2.1.0.2")
-  tags       = get-tags("2.1.0.2", ["2.1"])
-  args       = get-args("2.1.0.2")
+# Build arguments function
+function "get-args" {
+  params = [version, pak_ext]
+  result = pak_ext != "" ? {
+    S6_OVERLAY_VERSION = version
+    S6_OVERLAY_PAK_EXT = pak_ext
+  } : {
+    S6_OVERLAY_VERSION = version
+  }
 }
 
-target "2_2_0_0" {
-  inherits   = ["build-dockerfile-legacy", "build-platforms", "build-common"]
-  cache-from = get-cache-from("2.2.0.0")
-  cache-to   = get-cache-to("2.2.0.0")
-  tags       = get-tags("2.2.0.0", [])
-  args       = get-args("2.2.0.0")
-}
+target "s6-rootfs" {
+  name = replace(version, ".", "_")
+  matrix = {
+    version = keys(S6_VERSIONS)
+  }
 
-target "2_2_0_1" {
-  inherits   = ["build-dockerfile-legacy", "build-platforms", "build-common"]
-  cache-from = get-cache-from("2.2.0.1")
-  cache-to   = get-cache-to("2.2.0.1")
-  tags       = get-tags("2.2.0.1", [])
-  args       = get-args("2.2.0.1")
-}
+  inherits   = ["build-platforms", "build-common"]
+  dockerfile = try(S6_VERSIONS[version].legacy, false) ? "Dockerfile.legacy" : "Dockerfile"
 
-target "2_2_0_2" {
-  inherits   = ["build-dockerfile-legacy", "build-platforms", "build-common"]
-  cache-from = get-cache-from("2.2.0.2")
-  cache-to   = get-cache-to("2.2.0.2")
-  tags       = get-tags("2.2.0.2", [])
-  args       = get-args("2.2.0.2")
-}
+  tags       = get-tags(REGISTRY, version, try(S6_VERSIONS[version].extra_tags, []))
+  args       = get-args(try(S6_VERSIONS[version].overlay_version, version), try(S6_VERSIONS[version].pak_ext, ""))
 
-target "2_2_0_3" {
-  inherits   = ["build-dockerfile-legacy", "build-platforms", "build-common"]
-  cache-from = get-cache-from("2.2.0.3")
-  cache-to   = get-cache-to("2.2.0.3")
-  tags       = get-tags("2.2.0.3", ["2.2"])
-  args       = get-args("2.2.0.3")
-}
-
-target "3_0_0_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.0.0.0-1")
-  cache-to   = get-cache-to("3.0.0.0-1")
-  tags       = get-tags("3.0.0.0", ["3.0.0.0-1"])
-  args       = get-args-with-pak-ext("3.0.0.0-1", "-3.0.0.0-1.tar.xz")
-}
-
-target "3_0_0_1" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.0.0.1")
-  cache-to   = get-cache-to("3.0.0.1")
-  tags       = get-tags("3.0.0.1", [])
-  args       = get-args-with-pak-ext("3.0.0.1", "-3.0.0.1.tar.xz")
-}
-
-target "3_0_0_2" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.0.0.2")
-  cache-to   = get-cache-to("3.0.0.2")
-  tags       = get-tags("3.0.0.2", [])
-  args       = get-args-with-pak-ext("3.0.0.2", "-3.0.0.2.tar.xz")
-}
-
-target "3_0_0_2-2" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.0.0.2-2")
-  cache-to   = get-cache-to("3.0.0.2-2")
-  tags       = get-tags("3.0.0.2-2", ["3.0"])
-  args       = get-args-with-pak-ext("3.0.0.2-2", "-3.0.0.2-2.tar.xz")
-}
-
-target "3_1_0_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.0.0")
-  cache-to   = get-cache-to("3.1.0.0")
-  tags       = get-tags("3.1.0.0", [])
-  args       = get-args("3.1.0.0")
-}
-
-target "3_1_0_1" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.0.1")
-  cache-to   = get-cache-to("3.1.0.1")
-  tags       = get-tags("3.1.0.1", ["3.1.0"])
-  args       = get-args("3.1.0.1")
-}
-
-target "3_1_1_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.1.0")
-  cache-to   = get-cache-to("3.1.1.0")
-  tags       = get-tags("3.1.1.0", [])
-  args       = get-args("3.1.1.0")
-}
-
-target "3_1_1_1" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.1.1")
-  cache-to   = get-cache-to("3.1.1.1")
-  tags       = get-tags("3.1.1.1", [])
-  args       = get-args("3.1.1.1")
-}
-
-target "3_1_1_2" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.1.2")
-  cache-to   = get-cache-to("3.1.1.2")
-  tags       = get-tags("3.1.1.2", ["3.1", "3.1.1"])
-  args       = get-args("3.1.1.2")
-}
-
-target "3_1_2_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.2.0")
-  cache-to   = get-cache-to("3.1.2.0")
-  tags       = get-tags("3.1.2.0", [])
-  args       = get-args("3.1.2.0")
-}
-
-target "3_1_2_1" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.2.1")
-  cache-to   = get-cache-to("3.1.2.1")
-  tags       = get-tags("3.1.2.1", ["3.1.2"])
-  args       = get-args("3.1.2.1")
-}
-
-target "3_1_3_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.3.0")
-  cache-to   = get-cache-to("3.1.3.0")
-  tags       = get-tags("3.1.3.0", ["3.1.3"])
-  args       = get-args("3.1.3.0")
-}
-
-target "3_1_4_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.4.0")
-  cache-to   = get-cache-to("3.1.4.0")
-  tags       = get-tags("3.1.4.0", [])
-  args       = get-args("3.1.4.0")
-}
-
-target "3_1_4_1" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.4.1")
-  cache-to   = get-cache-to("3.1.4.1")
-  tags       = get-tags("3.1.4.1", [])
-  args       = get-args("3.1.4.1")
-}
-
-target "3_1_4_2" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.4.2")
-  cache-to   = get-cache-to("3.1.4.2")
-  tags       = get-tags("3.1.4.2", ["3.1.4"])
-  args       = get-args("3.1.4.2")
-}
-
-target "3_1_5_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.5.0")
-  cache-to   = get-cache-to("3.1.5.0")
-  tags       = get-tags("3.1.5.0", ["3.1.5"])
-  args       = get-args("3.1.5.0")
-}
-
-target "3_1_6_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.6.0")
-  cache-to   = get-cache-to("3.1.6.0")
-  tags       = get-tags("3.1.6.0", [])
-  args       = get-args("3.1.6.0")
-}
-
-target "3_1_6_1" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.6.1")
-  cache-to   = get-cache-to("3.1.6.1")
-  tags       = get-tags("3.1.6.1", [])
-  args       = get-args("3.1.6.1")
-}
-
-target "3_1_6_2" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.1.6.2")
-  cache-to   = get-cache-to("3.1.6.2")
-  tags       = get-tags("3.1.6.2", ["3.1", "3.1.6"])
-  args       = get-args("3.1.6.2")
-}
-
-target "3_2_0_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.2.0.0")
-  cache-to   = get-cache-to("3.2.0.0")
-  tags       = get-tags("3.2.0.0", [])
-  args       = get-args("3.2.0.0")
-}
-
-target "3_2_0_1" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.2.0.1")
-  cache-to   = get-cache-to("3.2.0.1")
-  tags       = get-tags("3.2.0.1", [])
-  args       = get-args("3.2.0.0")
-}
-
-target "3_2_0_2" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.2.0.2")
-  cache-to   = get-cache-to("3.2.0.2")
-  tags       = get-tags("3.2.0.2", [])
-  args       = get-args("3.2.0.2")
-}
-
-target "3_2_0_3" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.2.0.3")
-  cache-to   = get-cache-to("3.2.0.3")
-  tags       = get-tags("3.2.0.3", ["3.2.0"])
-  args       = get-args("3.2.0.3")
-}
-
-target "3_2_1_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.2.1.0")
-  cache-to   = get-cache-to("3.2.1.0")
-  tags       = get-tags("3.2.1.0", ["3.2.1"])
-  args       = get-args("3.2.1.0")
-}
-
-target "3_2_2_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.2.2.0")
-  cache-to   = get-cache-to("3.2.2.0")
-  tags       = get-tags("3.2.2.0", ["3.2.2"])
-  args       = get-args("3.2.2.0")
-}
-
-target "3_2_3_0" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.2.3.0")
-  cache-to   = get-cache-to("3.2.3.0")
-  tags       = get-tags("3.2.3.0", [])
-  args       = get-args("3.2.3.0")
-}
-
-target "3_2_3_1" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.2.3.1")
-  cache-to   = get-cache-to("3.2.3.1")
-  tags       = get-tags("3.2.3.1", [])
-  args       = get-args("3.2.3.1")
-}
-
-target "3_2_3_2" {
-  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
-  cache-from = get-cache-from("3.2.3.2")
-  cache-to   = get-cache-to("3.2.3.2")
-  tags       = get-tags("3.2.3.2", ["3.2", "3.2.3", "latest"])
-  args       = get-args("3.2.3.2")
+  cache-from = get-cache-from(REGISTRY_CACHE, try(S6_VERSIONS[version].overlay_version, version))
+  cache-to   = get-cache-to(REGISTRY_CACHE, try(S6_VERSIONS[version].overlay_version, version))
 }
