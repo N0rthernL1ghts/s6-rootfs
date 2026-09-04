@@ -68,6 +68,8 @@ COPY --from=builder ["/build/", "/"]
 ADD ["https://raw.githubusercontent.com/just-containers/s6-overlay/refs/heads/master/COPYING", "/usr/local/src/s6-overlay/COPYING"]
 ADD ["https://raw.githubusercontent.com/skarnet/s6/refs/heads/main/COPYING", "/usr/local/src/s6/COPYING"]
 
+COPY ["./COPYING", "/usr/local/src/s6-rootfs/COPYING"]
+
 
 
 # Final image: minimal rootfs
