@@ -13,7 +13,7 @@ COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:latest ["/", "/"]
 ```
 or with fixed version:
 ```Docker
-COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.2.2.0 ["/", "/"]
+COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.2.3.0 ["/", "/"]
 ```
 
 That's it!
@@ -31,7 +31,7 @@ FROM scratch AS rootfs
 COPY ["./rootfs", "/"]
 
 # Install S6
-COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.2.2.0 ["/", "/"]
+COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.2.3.0 ["/", "/"]
 
 
 # ---------------------
