@@ -22,19 +22,19 @@ It allows downstream Docker images to easily install and run the s6 supervisor s
 
 ## Usage
 
-```Docker
+```dockerfile
 COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:latest ["/", "/"]
 ```
 
 or with fixed version:
 
-```Docker
+```dockerfile
 COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:3.2.3.2 ["/", "/"]
 ```
 
 ### Recommended Integration Example
 
-```Docker
+```dockerfile
 # ---------------------
 # Build root filesystem
 # ---------------------
