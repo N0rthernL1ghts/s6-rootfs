@@ -8,7 +8,8 @@ group "default" {
     "3_1_2_1", "3_1_3_0", "3_1_4_0",
     "3_1_4_1", "3_1_4_2", "3_1_5_0",
     "3_1_6_0", "3_1_6_1", "3_1_6_2",
-    "3_2_0_0", "3_2_0_1", "3_2_0_2"
+    "3_2_0_0", "3_2_0_1", "3_2_0_2",
+    "3_2_0_3"
   ]
 }
 
@@ -302,6 +303,14 @@ target "3_2_0_2" {
   inherits   = ["build-dockerfile", "build-platforms", "build-common"]
   cache-from = get-cache-from("3.2.0.2")
   cache-to   = get-cache-to("3.2.0.2")
-  tags       = get-tags("3.2.0.2", ["3.2", "3.2.0", "latest"])
+  tags       = get-tags("3.2.0.2", [])
   args       = get-args("3.2.0.2")
+}
+
+target "3_2_0_3" {
+  inherits   = ["build-dockerfile", "build-platforms", "build-common"]
+  cache-from = get-cache-from("3.2.0.3")
+  cache-to   = get-cache-to("3.2.0.3")
+  tags       = get-tags("3.2.0.3", ["3.2", "3.2.0", "latest"])
+  args       = get-args("3.2.0.3")
 }
