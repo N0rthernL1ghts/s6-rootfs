@@ -51,7 +51,15 @@ variable "S6_VERSIONS" {
   }
 }
 
+variable "LATEST_VERSION" {
+  default = "3.2.3.2"
+}
+
 group "default" {
+  targets = [replace(LATEST_VERSION, ".", "_")]
+}
+
+group "all" {
   targets = ["s6-rootfs"]
 }
 

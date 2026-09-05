@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Bake target or group to build (e.g. default, all, 3_2_3_2)'
+        required: true
+        default: 'default'
 
 jobs:
   build:
@@ -35,4 +41,5 @@ jobs:
         uses: docker/bake-action@v7.2.0
         with:
           files: hack/docker-bake.hcl
+          targets: ${{ github.event.inputs.target || 'default' }}
           push: true

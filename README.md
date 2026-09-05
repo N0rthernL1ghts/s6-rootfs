@@ -97,13 +97,16 @@ Images are built natively or via QEMU for the following architectures:
 
 Builds are defined in [`hack/docker-bake.hcl`](hack/docker-bake.hcl) using Docker Buildx Bake.
 
-### Build a specific version locally
+### Build using Bake
 
 ```bash
-# Build target 3_2_3_2 using Bake
-docker buildx bake --file hack/docker-bake.hcl 3_2_3_2
+# Build the latest version target (default group)
+docker buildx bake --file hack/docker-bake.hcl
 
-# Build and load into local Docker daemon for host architecture
+# Build all versions in the matrix (all group)
+docker buildx bake --file hack/docker-bake.hcl all
+
+# Build and load a specific target into local Docker daemon
 docker buildx bake --file hack/docker-bake.hcl --set "*.platform=linux/amd64" --load 3_2_3_2
 ```
 
