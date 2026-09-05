@@ -67,7 +67,7 @@ target "build-common" {
 function "get-cache-from" {
   params = [registry, version]
   result = [
-    "type=registry,ref=${registry}:${sha1("${version}-${BAKE_LOCAL_PLATFORM}")}"
+    "type=registry,ref=${registry}:cache-${version}"
   ]
 }
 
@@ -75,7 +75,7 @@ function "get-cache-from" {
 function "get-cache-to" {
   params = [registry, version]
   result = [
-    "type=registry,mode=max,ref=${registry}:${sha1("${version}-${BAKE_LOCAL_PLATFORM}")}"
+    "type=registry,mode=max,ref=${registry}:cache-${version}"
   ]
 }
 
