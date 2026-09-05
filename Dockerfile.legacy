@@ -11,7 +11,8 @@ RUN set -eux \
     && apk add --no-cache wget \
     && mkdir -p /s6-overlay \
     && wget -O /tmp/s6overlay.tar.gz $(echo ${S6_OVERLAY_RELEASE} | sed 's/linux\///g' | sed 's/arm64/aarch64/g' | sed 's/arm\/v7/armhf/g') \
-    && tar xzf /tmp/s6overlay.tar.gz -C /s6-overlay
+    && tar xzf /tmp/s6overlay.tar.gz -C /s6-overlay \
+    && printf "%s [%s]" "${S6_OVERLAY_VERSION:?}" "${TARGETPLATFORM:?}" > /build/etc/s6-overlay-release
 
 
 

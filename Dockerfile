@@ -51,12 +51,16 @@ FROM busybox AS builder
 
 COPY --from=downloader ["/s6overlay-base.tar.xz", "/s6overlay-bin.tar.xz", "/s6overlay-arch-symlinks.tar.xz", "/s6overlay-noarch-symlinks.tar.xz", "/tmp/s6/"]
 
+ARG TARGETPLATFORM
+ARG S6_OVERLAY_VERSION
+
 RUN set -eux \
     && mkdir -p /build \
     && tar -Jxpf /tmp/s6/s6overlay-base.tar.xz -C /build \
     && tar -Jxpf /tmp/s6/s6overlay-bin.tar.xz -C /build \
     && tar -Jxpf /tmp/s6/s6overlay-arch-symlinks.tar.xz -C /build \
-    && tar -Jxpf /tmp/s6/s6overlay-noarch-symlinks.tar.xz -C /build
+    && tar -Jxpf /tmp/s6/s6overlay-noarch-symlinks.tar.xz -C /build \
+    && printf "%s [%s]" "${S6_OVERLAY_VERSION:?}" "${TARGETPLATFORM:?}" > /build/etc/s6-overlay-release
 
 
 
