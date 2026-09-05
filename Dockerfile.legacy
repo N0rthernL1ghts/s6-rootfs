@@ -9,10 +9,10 @@ ARG S6_OVERLAY_RELEASE="https://github.com/just-containers/s6-overlay/releases/d
 
 RUN set -eux \
     && apk add --no-cache wget \
-    && mkdir -p /s6-overlay \
+    && mkdir -p /s6-overlay/etc \
     && wget -O /tmp/s6overlay.tar.gz $(echo ${S6_OVERLAY_RELEASE} | sed 's/linux\///g' | sed 's/arm64/aarch64/g' | sed 's/arm\/v7/armhf/g') \
     && tar xzf /tmp/s6overlay.tar.gz -C /s6-overlay \
-    && printf "%s [%s]" "${S6_OVERLAY_VERSION:?}" "${TARGETPLATFORM:?}" > /build/etc/s6-overlay-release
+    && printf "VERSION_ID=\"%s\"\nTARGET_PLATFORM=\"%s\"\n" "${S6_OVERLAY_VERSION:?}" "${TARGETPLATFORM:?}" > /s6-overlay/etc/s6-overlay-release
 
 
 
