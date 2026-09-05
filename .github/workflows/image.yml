@@ -1,15 +1,15 @@
 name: Build docker s6-overlay rootfs image
 
 on:
-  push:
-    branches:
-      - master
+  release:
+    types:
+      - published
   workflow_dispatch:
     inputs:
       target:
-        description: 'Bake target or group to build (e.g. default, all, 3_2_3_2)'
+        description: 'Bake target or group to build (e.g. all, default, 3_2_3_2)'
         required: true
-        default: 'default'
+        default: 'all'
 
 jobs:
   build:
@@ -41,5 +41,5 @@ jobs:
         uses: docker/bake-action@v7.2.0
         with:
           files: hack/docker-bake.hcl
-          targets: ${{ github.event.inputs.target || 'default' }}
+          targets: ${{ github.event_name == 'release' && 'default' || github.event.inputs.target }}
           push: true
