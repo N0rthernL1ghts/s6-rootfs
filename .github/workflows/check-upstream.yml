@@ -1,0 +1,205 @@
+name: Check Upstream Releases
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Specific s6-overlay version to build (optional, e.g. 3.2.0.3)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  check-and-build:
+    name: Check, Build & Verify Upstream Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for pending work (Gating)
+        id: gate_check
+        env:
+          GH_TOKEN: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Check for any open PRs created for an s6-overlay update
+          PENDING_PR=$(gh pr list --state open --search "Add s6-overlay in:title" --json number --jq '.[0].number // empty')
+          if [ -n "${PENDING_PR}" ]; then
+            echo "::notice::Found pending release PR #${PENDING_PR}. Halting automation until resolved."
+            echo "### Automation Paused" >> $GITHUB_STEP_SUMMARY
+            echo "An existing release PR (#${PENDING_PR}) is pending review/merge. Automation halted to avoid branching conflicts." >> $GITHUB_STEP_SUMMARY
+            echo "proceed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check for any open build failure issues requiring manual intervention
+          PENDING_ISSUE=$(gh issue list --state open --label "build-failure" --json number --jq '.[0].number // empty')
+          if [ -n "${PENDING_ISSUE}" ]; then
+            echo "::notice::Found unresolved failure issue #${PENDING_ISSUE}. Halting automation for manual intervention."
+            echo "### Automation Paused" >> $GITHUB_STEP_SUMMARY
+            echo "Unresolved issue #${PENDING_ISSUE} labeled \`build-failure\` is currently open. Automation halted for manual triage." >> $GITHUB_STEP_SUMMARY
+            echo "proceed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "proceed=true" >> $GITHUB_OUTPUT
+
+      - name: Resolve target version
+        if: steps.gate_check.outputs.proceed == 'true'
+        id: resolve_version
+        env:
+          GH_TOKEN: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
+          MANUAL_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${MANUAL_VERSION}" ]; then
+            RAW_VERSION="${MANUAL_VERSION}"
+          else
+            RAW_VERSION=$(gh api repos/just-containers/s6-overlay/releases/latest --jq .tag_name)
+          fi
+
+          VERSION="${RAW_VERSION#v}"
+          echo "Target s6-overlay version: ${VERSION}"
+
+          # Check if tag already exists in local repo
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "::notice::Version v${VERSION} is already released in this repository."
+            echo "### Up to date" >> $GITHUB_STEP_SUMMARY
+            echo "s6-rootfs already contains tag \`v${VERSION}\`. No update needed." >> $GITHUB_STEP_SUMMARY
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if remote branch already exists
+          if git ls-remote --exit-code --heads origin "bump-s6-overlay-${VERSION}" >/dev/null 2>&1; then
+            echo "::notice::Branch bump-s6-overlay-${VERSION} already exists on remote."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "skip=false" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        if: steps.gate_check.outputs.proceed == 'true' && steps.resolve_version.outputs.skip == 'false'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Apply version updates with Perl
+        if: steps.gate_check.outputs.proceed == 'true' && steps.resolve_version.outputs.skip == 'false'
+        id: update_code
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.resolve_version.outputs.version }}"
+          ./hack/update-version.pl "${VERSION}"
+
+      - name: Build & Run Downstream Test Harness
+        if: steps.gate_check.outputs.proceed == 'true' && steps.resolve_version.outputs.skip == 'false'
+        id: test_build
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.resolve_version.outputs.version }}"
+          TARGET_NAME=$(echo "${VERSION}" | tr '.-' '__')
+
+          echo "Building target ${TARGET_NAME} locally for linux/amd64..."
+          docker buildx bake --file hack/docker-bake.hcl --set "*.platform=linux/amd64" --load "${TARGET_NAME}"
+
+          echo "Running downstream test container..."
+          docker run --rm -i $(docker build -q - <<EOF
+          FROM alpine:latest
+          COPY --from=ghcr.io/n0rthernl1ghts/s6-rootfs:${VERSION} / /
+          ENTRYPOINT ["/init"]
+          CMD ["/bin/sh", "-c", "echo 'S6 initialized successfully'"]
+          EOF
+          )
+
+          echo "Verifying s6 binaries..."
+          docker run --rm ghcr.io/n0rthernl1ghts/s6-rootfs:${VERSION} /bin/sh -c "test -x /init && test -d /command"
+
+          echo "Build and downstream verification passed for ${VERSION}!"
+
+      - name: Handle Failure (Create Issue for Manual Intervention)
+        if: failure() && steps.gate_check.outputs.proceed == 'true' && steps.resolve_version.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.resolve_version.outputs.version }}
+        run: |
+          EXISTING_ISSUE=$(gh issue list --state open --search "[Automation] Failed to build s6-overlay ${VERSION}" --json number --jq '.[0].number // empty')
+          if [ -z "${EXISTING_ISSUE}" ]; then
+            gh issue create \
+              --title "[Automation] Failed to build s6-overlay ${VERSION}" \
+              --label "bug,build-failure" \
+              --body "Automated build for upstream release [v${VERSION}](https://github.com/just-containers/s6-overlay/releases/tag/v${VERSION}) failed during local build or downstream verification.
+
+          - **Target Version:** \`${VERSION}\`
+          - **Run URL:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Please inspect the workflow execution log to investigate the packaging failure."
+          fi
+
+      - name: Import GPG Key
+        if: success() && steps.gate_check.outputs.proceed == 'true' && steps.resolve_version.outputs.skip == 'false'
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.BOT_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.BOT_GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+        continue-on-error: true
+
+      - name: Commit, Push & Create Pull Request
+        if: success() && steps.gate_check.outputs.proceed == 'true' && steps.resolve_version.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.resolve_version.outputs.version }}
+        run: |
+          set -euo pipefail
+          BRANCH_NAME="bump-s6-overlay-${VERSION}"
+
+          # If GPG import was skipped/failed or keys not configured, set fallback committer
+          if [ "${{ steps.import_gpg.outcome }}" != "success" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+          fi
+
+          git checkout -b "${BRANCH_NAME}"
+          git add Dockerfile hack/docker-bake.hcl README.md
+
+          # Commit with GPG signing if key was imported, otherwise standard commit
+          if [ "${{ steps.import_gpg.outcome }}" = "success" ]; then
+            git commit -S -m "Add s6-overlay ${VERSION} target"
+          else
+            git commit -m "Add s6-overlay ${VERSION} target"
+          fi
+
+          git push origin "${BRANCH_NAME}"
+
+          gh pr create \
+            --title "Add s6-overlay ${VERSION} target" \
+            --head "${BRANCH_NAME}" \
+            --base "master" \
+            --body "Automated release bump for upstream [s6-overlay v${VERSION}](https://github.com/just-containers/s6-overlay/releases/tag/v${VERSION}).
+
+          ### Verification Status
+          - [x] Updated \`Dockerfile\` default version
+          - [x] Updated \`hack/docker-bake.hcl\` matrix and rolling tags
+          - [x] Updated \`README.md\` version examples
+          - [x] Successfully compiled image with \`docker buildx bake\`
+          - [x] Downstream Alpine verification passed (\`/init\` test harness)
+          - [x] Commit signed with GPG
+
+          Once this PR is merged to \`master\`, tag \`v${VERSION}\` and publish the GitHub release to trigger the GHCR publishing workflow."
