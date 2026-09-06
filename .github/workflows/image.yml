@@ -11,9 +11,13 @@ on:
         required: true
         default: 'all'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     steps:
       - name: checkout code
         uses: actions/checkout@v6
