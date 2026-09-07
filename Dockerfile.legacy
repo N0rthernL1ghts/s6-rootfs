@@ -1,5 +1,5 @@
 # First stage - Download s6-overlay and unpack it
-FROM alpine:3.23 AS downloader
+FROM alpine:3.24 AS downloader
 
 ARG TARGETPLATFORM
 
