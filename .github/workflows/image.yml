@@ -42,7 +42,7 @@ jobs:
           username: ${{github.actor}}
           password: ${{secrets.PAT_TOKEN}}
       - name: Build and push
-        uses: docker/bake-action@v7.3.0
+        uses: docker/bake-action@v7.4.0
         with:
           files: hack/docker-bake.hcl
           targets: ${{ github.event_name == 'release' && 'default' || github.event.inputs.target }}
